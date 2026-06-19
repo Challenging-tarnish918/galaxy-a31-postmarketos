@@ -35,12 +35,13 @@ device/downstream/device-samsung-a31/     <- deviceinfo (from device-samsung-a31
 device/downstream/linux-samsung-a31/       <- APKBUILD (from device-samsung-a31/ here)
 ```
 
-You also need the kernel config at
-`linux-samsung-a31/config-samsung-a31.aarch64`. I base mine on the kernel tree's
-`arch/arm64/configs/a31_defconfig` with these changes:
+The kernel APKBUILD needs a config named `config-samsung-a31.aarch64` next to it.
+I ship the real one in `device-samsung-a31/config-samsung-a31.aarch64` (pulled from
+my running phone's `/proc/config.gz`), so just copy it over. It's `a31_defconfig`
+plus, most importantly:
 
 - `CONFIG_DEVTMPFS=y` and `CONFIG_DEVTMPFS_MOUNT=y` (pmOS needs `/dev` populated)
-- turn off `CONFIG_COMPAT_VDSO` and `CONFIG_IKHEADERS` (they break the build)
+- `CONFIG_COMPAT_VDSO` and `CONFIG_IKHEADERS` turned off (they break the build)
 
 The build-time fixes (the `compiler-gcc.h` tweak, the dtc redirect, the gzip step,
 the connsys fragment-size patch, the touch VLA fix) all live in the APKBUILD's

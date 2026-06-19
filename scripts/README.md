@@ -11,6 +11,7 @@ if needed.
 | `setup-wifi.sh` | Associate + DHCP. `WIFI_SSID` / `WIFI_PSK` from the environment. |
 | `bt-hci.py` | Open `/dev/stpbt`, send an HCI Reset, read the status back. |
 | `speaker.sh` | Route audio out the speaker (the amixer/DAPM dance). |
+| `audio-router.py` | Daemon that auto-switches speaker/headphones off the jack. Run it instead of `speaker.sh` if you want both. |
 
 Rough order on a fresh boot:
 

@@ -47,10 +47,21 @@ wiped on reboot, so copy the binaries somewhere persistent (I keep mine in
 Rough bring-up order once the firmware's in place:
 
 ```sh
+cp /lib/firmware/WMT_SOC.cfg /lib/firmware/WMT.cfg   # kernel reads WMT.cfg
 ./mtinit                       # creates /dev/stpwmt, /dev/wmtWifi, /dev/stpbt
 ./mtdaemon -p /lib/firmware    # downloads firmware, powers the chip on
 echo 1 > /dev/wmtWifi          # brings up wlan0
 ```
+
+(`scripts/connsys-up.sh` does this for you, building the binaries first.)
+
+> A note on provenance: I lost the exact final `mtdaemon.c` when the build tree in
+> `/tmp` got wiped, and only the working binary survived on the device. The source
+> here is reconstructed to match it — I confirmed against the live binary that it
+> uses these exact ioctls (`WMT_IOCTL_WMT_TELL_CHIPID`, `WMT_IOCTL_WMT_CFG_NAME`,
+> `srh_rom_patch`) and against the on-device `mtdaemon.log` that the bring-up
+> sequence is right. If an ioctl number is off for your kernel, the daemon logs
+> exactly which one failed, so it's easy to spot.
 
 ## Firmware is NOT included
 

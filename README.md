@@ -28,12 +28,12 @@ If you have an A31 and want to do the same thing, start with [INSTALL.md](INSTAL
 | X desktop (software) | yes | Xorg + openbox + on-screen keyboard |
 | WiFi (MediaTek connsys) | yes | the hard one — see [docs/wifi.md](docs/wifi.md) |
 | Bluetooth | partial | raw HCI confirmed, no BlueZ bridge yet |
-| Audio (speaker) | yes | manual DAPM routing to the SMA1303 amp |
+| Audio (speaker, headphones, mic) | yes | manual DAPM routing; auto-switches on the jack |
 
 ## How it's laid out
 
 ```
-device-samsung-a31/   the pmaports material: deviceinfo + kernel APKBUILD
+device-samsung-a31/   the pmaports material: deviceinfo + kernel APKBUILD + config
 connsys/              my patched openmttools (mtinit + mtdaemon) for WiFi/BT
 tools/               little python helpers (parse boot.img / super, fix root UUID)
 scripts/             bring-up helpers you run on the phone

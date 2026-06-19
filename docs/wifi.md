@@ -220,26 +220,42 @@ The first three live in the patched `connsys/mtdaemon.c` (read it for the exact 
 Bring-up, start to finish, on a freshly booted phone (the kernel caches rom-patch info, so if you're iterating on the daemon you sometimes have to reboot to get it to re-request):
 
 ```sh
-# 1. firmware already in /lib/firmware (see Part 1)
+# 1. firmware already in /lib/firmware (see Part 1). The kernel reads WMT.cfg,
+#    so make it the SOC config:
+cp /lib/firmware/WMT_SOC.cfg /lib/firmware/WMT.cfg
 
 # 2. create the device nodes
 ./mtinit
 # dmesg: "SOC chip detected with ID 0x6768"; /dev/stpwmt /dev/wmtWifi /dev/stpbt appear
 
 # 3. power the chip on + download firmware (keep it running)
-nohup ./mtdaemon -p /lib/firmware &
-# dmesg: query chipid 0x6768, version 0x10020501, blobs to EMI,
-#        WMT_SOC.cfg parsed, get hwcode (0x6768) OK, MCU boots, wlanProbe, wlan0
+setsid ./mtdaemon -p /lib/firmware >/var/log/mtdaemon.log 2>&1 &
+sleep 7
+
+# 4. function-on WiFi -> wlan0 appears
+echo 1 > /dev/wmtWifi
+sleep 5
+ip link set wlan0 up
 ```
 
-Once `mtdaemon` reports the chip up, create the actual interface:
+That's the exact sequence I run from `/opt/mtk/wifi-up.sh` at boot, reproduced in
+`scripts/connsys-up.sh`. Here's the `mtdaemon` log from a real, successful run:
 
-```sh
-echo 1 > /dev/wmtWifi   # function-on WiFi
-echo S > /dev/wmtWifi   # STA mode
+```
+[mtdaemon][inf] told kernel chip id 0x6768
+[mtdaemon][inf] WMT cfg file set: WMT_SOC.cfg
+[mtdaemon][inf] trying to power on the chip
+[mtdaemon][inf] chip powered on!
+[mtdaemon][inf] requested command: srh_rom_patch
+[mtdaemon][inf] rom patch type 0: soc1_0_ram_bt_1a_1_hdr.bin   addr 0xf0080000
+[mtdaemon][inf] rom patch type 3: soc1_0_ram_wifi_1a_1_hdr.bin addr 0xf0140000
+[mtdaemon][inf] rom patch type 4: soc1_0_ram_mcu_1a_1_hdr.bin  addr 0xf0000000
+[mtdaemon][inf] chip ID: 0x6768 (0x6768) hardware: 0x8a00 firmware: 0x8a00
 ```
 
-and `wlan0` is there.
+The `addr` values ending in `00` (not `11`) are the patch-address fix doing its
+job; the kernel derives the EMI offsets `0x80000 / 0x140000 / 0x000000` from them.
+After that, `wlan0` is there.
 
 ## Connecting
 
@@ -253,7 +269,7 @@ wpa_supplicant -B -i wlan0 -D nl80211 -c /tmp/wpa.conf
 dhcpcd -4 wlan0
 ```
 
-A scan (`iw dev wlan0 scan`) sees ~20 APs across 2.4 and 5 GHz. On my network I associate to a 5 GHz AP at 234 Mbit/s, DHCP leases an address, and `ping 1.1.1.1` over `wlan0` is 0% loss. Real internet, over real WiFi, no USB tether. The MAC is the genuine factory its real factory MAC (not a random one).
+A scan (`iw dev wlan0 scan`) sees ~20 APs across 2.4 and 5 GHz. On my network I associate to a 5 GHz AP at 234 Mbit/s, DHCP leases an address, and `ping 1.1.1.1` over `wlan0` is 0% loss. Real internet, over real WiFi, no USB tether. The MAC comes up as the genuine factory address, not a random one, so the chip is reading its calibration from somewhere valid.
 
 ## End state
 

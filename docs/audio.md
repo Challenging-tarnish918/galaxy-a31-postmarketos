@@ -55,8 +55,12 @@ Two ways I persist this. `alsactl store` writes the whole mixer state to `/var/l
 
 If you're tethered and poking at this over SSH, open the audio device detached. Touching the card can momentarily drop the usb0 link mid-command, which is annoying but harmless.
 
-## What's not here
+## Headphones, mic, and automatic switching
 
-Headphones (MT6358 internal analog via the ADDA path and the HPL/HPR muxes) and the mic both work on the same `mt6768-mt6358` card, and I even have automatic speaker/headphone switching off the ACCDET jack-detect input. I kept this page to the speaker on purpose. Graphics on this device are software-rendered on plain fbdev, so none of this touches anything fancy on the display side.
+The headphone path is a different route entirely: it skips I2S1/the amp and goes out the MT6358's own analog DAC (the ADDA path) through the `HPL Mux`/`HPR Mux` widgets. The mic comes in through `AIN0` and the preamps. Both work on the same `mt6768-mt6358` card.
+
+The annoying part is that nothing switches between speaker and headphones for you — the codec doesn't react to the jack on its own. So I run a small daemon, [`scripts/audio-router.py`](../scripts/audio-router.py), that watches the ACCDET jack-detect switch on `/dev/input/event1` and flips the whole routing when you plug or unplug. It also re-reads the real jack state every few seconds (`EVIOCGSW`) so it stays correct even if it misses an event. When headphones go in it cuts the amp hard (route off, power down, mute) and brings the analog HP path up; when they come out it does the reverse. That script is the actual audio setup on my device — `speaker.sh` above is just the speaker half of it pulled out for clarity.
+
+Graphics on this device are software-rendered on plain fbdev, so none of the audio touches anything fancy on the display side.
 
 If someone finds a cleaner way to bring up the SMA1303, or knows why that `spk_amp_event` stub is empty upstream, open an issue. I'd genuinely like to know.

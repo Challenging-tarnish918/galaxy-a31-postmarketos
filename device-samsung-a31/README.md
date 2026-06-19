@@ -16,14 +16,14 @@ pmaports/device/downstream/device-samsung-a31/   <- deviceinfo (+ the usual APKB
 pmaports/device/downstream/linux-samsung-a31/    <- this APKBUILD + the kernel config
 ```
 
-The kernel APKBUILD expects a config file named **`config-samsung-a31.aarch64`** sitting next to it. I don't ship a full config here because it's ~6k lines of mostly-stock `a31_defconfig` and it'd rot. The short version: start from the kernel tree's `arch/arm64/configs/a31_defconfig`, then add
+The kernel APKBUILD expects a config file named **`config-samsung-a31.aarch64`** sitting next to it — and it's right here in this folder. That's the actual config off my running device (pulled from `/proc/config.gz`), the one that produces the kernel I'm using, so it's not a guess. It started life as the kernel tree's `arch/arm64/configs/a31_defconfig` with the important additions being
 
 ```
 CONFIG_DEVTMPFS=y
 CONFIG_DEVTMPFS_MOUNT=y
 ```
 
-(without those, pmOS's init has no `/dev` and you get a very confusing early boot failure) plus a couple of disables. The complete list of config changes — what to turn off, why `COMPAT_VDSO`/`IKHEADERS` had to go, the touch and connsys bits — is in **[../docs/kernel.md](../docs/kernel.md)**, along with the build fixes that took me the longest to figure out. Don't skip it; the APKBUILD won't produce a bootable kernel without the matching config.
+(without those, pmOS's init has no `/dev` and you get a very confusing early boot failure) plus a couple of disables. The reasoning behind the changes — why `COMPAT_VDSO`/`IKHEADERS` had to go, the touch and connsys bits — is in **[../docs/kernel.md](../docs/kernel.md)**, along with the build fixes that took me the longest to figure out.
 
 For getting the result onto the phone (download mode, the 32 MB boot partition gotcha where the kernel has to be gzipped, the matched boot+root pairing), see **[../docs/flashing.md](../docs/flashing.md)**.
 
