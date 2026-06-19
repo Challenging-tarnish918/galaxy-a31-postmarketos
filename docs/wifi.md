@@ -64,7 +64,7 @@ cp /mnt/vendor/firmware/*.cfg     /lib/firmware/
 
 I also dropped copies into `/vendor/firmware` and `/etc/firmware` just to be safe, because at various points I wasn't sure which path the kernel's `request_firmware` would resolve to and I didn't want to debug that too. `/lib/firmware` is the one that actually matters for this stack.
 
-One thing that bit me later: the EEPROM/calibration blob is NOT in `vendor/firmware`. There's only `txpowerctrl.cfg` and the WIFI cfg. The real per-unit calibration lives in the nvram/nvdata partitions, and I worried the MAC would come up random. It didn't — final MAC is the real `00:08:22:84:f1:fb`, so the chip pulled it from somewhere valid. I never had to chase that down, which was a relief.
+One thing that bit me later: the EEPROM/calibration blob is NOT in `vendor/firmware`. There's only `txpowerctrl.cfg` and the WIFI cfg. The real per-unit calibration lives in the nvram/nvdata partitions, and I worried the MAC would come up random. It didn't — final MAC is the real its real factory MAC (not a random one), so the chip pulled it from somewhere valid. I never had to chase that down, which was a relief.
 
 ## Part 2: userspace, or why I had to build my own loader
 
@@ -253,7 +253,7 @@ wpa_supplicant -B -i wlan0 -D nl80211 -c /tmp/wpa.conf
 dhcpcd -4 wlan0
 ```
 
-A scan (`iw dev wlan0 scan`) sees ~20 APs across 2.4 and 5 GHz. On my network I associate to a 5 GHz AP at 234 Mbit/s, DHCP leases an address, and `ping 1.1.1.1` over `wlan0` is 0% loss. Real internet, over real WiFi, no USB tether. The MAC is the genuine factory `00:08:22:84:f1:fb`.
+A scan (`iw dev wlan0 scan`) sees ~20 APs across 2.4 and 5 GHz. On my network I associate to a 5 GHz AP at 234 Mbit/s, DHCP leases an address, and `ping 1.1.1.1` over `wlan0` is 0% loss. Real internet, over real WiFi, no USB tether. The MAC is the genuine factory its real factory MAC (not a random one).
 
 ## End state
 

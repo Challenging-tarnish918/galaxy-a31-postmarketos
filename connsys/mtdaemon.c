@@ -98,7 +98,9 @@ typedef struct
 #define WMT_IOCTL_SET_LAUNCHER_KILL     _IOW(0xA0, 13, int)
 #define WMT_IOCTL_SET_PATCH_NUM         _IOW(0xA0, 14, int)
 #define WMT_IOCTL_SET_PATCH_INFO        _IOW(0xA0, 15, char*)
+#define WMT_IOCTL_WMT_CFG_NAME          _IOWR(0xA0, 21, char*)
 #define WMT_IOCTL_WMT_QUERY_CHIPID      _IOR(0xA0, 22, int)
+#define WMT_IOCTL_WMT_TELL_CHIPID       _IOW(0xA0, 23, int)
 #define WMT_IOCTL_SET_ROM_PATCH_INFO    _IOW(0xA0, 31, char*)
 
 /* connsys SOC rom patch (MT6768): struct wmt_rom_patch_info from wmt_lib.h
@@ -403,6 +405,13 @@ int search_rom_patch_callback()
         }
         close( fd );
 
+        /* The low byte of u4PatchAddr is a sequence flag, not address bits. The
+         * kernel computes the EMI offset as (addr[2]<<16)|(addr[1]<<8)|addr[0],
+         * so a non-zero low byte (mine all came out 0x11) lands the firmware at
+         * the wrong offset (0x80011 instead of 0x80000) and wmt_core_hw_check
+         * fails the whole session. The stock launcher zeroes it; so do we. */
+        info.addRess[ 0 ] = 0;
+
         strncpy( (char*)info.patchName, romPatches[ i ].file, sizeof( info.patchName ) - 1 );
 
         LOG_INFO( "rom patch type %d: %s addr 0x%02x%02x%02x%02x", info.type, info.patchName,
@@ -486,6 +495,19 @@ int main( int argc, char* argv[] )
     }
 
     LOG_INFO( "the chip ID is 0x%04x (0x%04x)", properChipID, chipID );
+
+    /* The stock wmt_launcher explicitly tells the kernel the chip ID after the
+     * query; openmttools never did. Without it the connsys SOC path uses wrong
+     * defaults and never comes up. (ioctl number recovered by disassembling the
+     * stock launcher on-device.) */
+    ioctl( wmtFD, WMT_IOCTL_WMT_TELL_CHIPID, properChipID );
+
+    /* Point the kernel at the SOC config file. WMT_SOC.cfg carries co_clock_flag=1
+     * and the BTIF transport settings; without it dmesg says "failed to parse
+     * 'wifi_config'" and the transport never initialises. Must happen before
+     * power-on. (ioctl number from the same disassembly.) */
+    char cfgName[] = "WMT_SOC.cfg";
+    ioctl( wmtFD, WMT_IOCTL_WMT_CFG_NAME, cfgName );
 
     /* reset patch name */
     char patchName[ NAME_MAX + 1 ];
